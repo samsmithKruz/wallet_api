@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,7 +51,7 @@ class Wallet extends Model
      */
     public function creditTransactions()
     {
-        return $this->transactions()->where('type', 'credit');
+        return $this->transactions()->where('type', TransactionType::CREDIT);
     }
 
     /**
@@ -57,7 +59,7 @@ class Wallet extends Model
      */
     public function debitTransactions()
     {
-        return $this->transactions()->where('type', 'debit');
+        return $this->transactions()->where('type', TransactionType::DEBIT);
     }
 
     /**
@@ -65,7 +67,7 @@ class Wallet extends Model
      */
     public function transferInTransactions()
     {
-        return $this->transactions()->where('type', 'transfer_in');
+        return $this->transactions()->where('type', TransactionType::TRANSFER_IN);
     }
 
     /**
@@ -73,7 +75,7 @@ class Wallet extends Model
      */
     public function transferOutTransactions()
     {
-        return $this->transactions()->where('type', 'transfer_out');
+        return $this->transactions()->where('type', TransactionType::TRANSFER_OUT);
     }
 
     /**
@@ -90,5 +92,51 @@ class Wallet extends Model
     public function hasSufficientBalance(float $amount): bool
     {
         return $this->balance >= $amount;
+    }
+
+
+
+    /**
+     * Get total credits.
+     */
+    public function getTotalCreditsAttribute(): float
+    {
+        return $this->transactions()
+            ->where('type', TransactionType::CREDIT)
+            ->where('status', TransactionStatus::COMPLETED)
+            ->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get total debits.
+     */
+    public function getTotalDebitsAttribute(): float
+    {
+        return $this->transactions()
+            ->where('type', TransactionType::DEBIT)
+            ->where('status', TransactionStatus::COMPLETED)
+            ->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get total transfers in.
+     */
+    public function getTotalTransfersInAttribute(): float
+    {
+        return $this->transactions()
+            ->where('type', TransactionType::TRANSFER_IN)
+            ->where('status', TransactionStatus::COMPLETED)
+            ->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get total transfers out.
+     */
+    public function getTotalTransfersOutAttribute(): float
+    {
+        return $this->transactions()
+            ->where('type', TransactionType::TRANSFER_OUT)
+            ->where('status', TransactionStatus::COMPLETED)
+            ->sum('amount') ?? 0;
     }
 }

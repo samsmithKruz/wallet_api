@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\V1;
+namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
         license: new OA\License(name: 'MIT', url: 'https://opensource.org/licenses/MIT')
     ),
     servers: [
-        new OA\Server(url: 'http://localhost:8000/api/v1', description: 'Local Development Server'),
+        new OA\Server(url: 'http://localhost:8000', description: 'Local Development Server'),
     ],
     security: [
         ['tokenAuth' => []]
@@ -91,39 +91,141 @@ use OpenApi\Attributes as OA;
     ]
 )]
 
-
-class WelcomeController extends Controller
-{
-    //
-    #[OA\Get(
-        path: '/api/v1/',
-        operationId: 'getApiWelcome',
-        tags: ['Welcome'],
-        summary: 'API Welcome',
-        description: 'Welcome to Wallet API v1',
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'Successful operation',
-                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
-            ),
-            new OA\Response(
-                response: 401,
-                description: 'Unauthorized',
-                content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
-            ),
-        ]
-    )]
-    public function index()
-    {
-        return response()->json([
-            'status_code' => 200,
-            'message' => 'Wallet API v1',
-            'data' => [
-                'version' => '1.0.0',
-                'documentation' => url('api/v1/documentation')
+#[OA\Schema(
+    schema: 'Transaction',
+    description: 'Transaction information',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'wallet_id', type: 'integer', example: 1),
+        new OA\Property(property: 'type', type: 'string', example: 'credit'),
+        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 500.00),
+        new OA\Property(property: 'reference', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+        new OA\Property(property: 'description', type: 'string', example: 'Bank transfer', nullable: true),
+        new OA\Property(property: 'status', type: 'string', example: 'completed'),
+        new OA\Property(property: 'transfer_id', type: 'integer', example: 1, nullable: true),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(
+            property: 'wallet',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'user_id', type: 'integer', example: 1),
+                new OA\Property(property: 'balance', type: 'number', format: 'float', example: 1500.00),
             ],
-            'errors' => null
-        ]);
-    }
-}
+            type: 'object'
+        ),
+    ]
+)]
+
+#[OA\Schema(
+    schema: 'Transfer',
+    description: 'Transfer information with sender/receiver details',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'sender_wallet_id', type: 'integer', example: 1),
+        new OA\Property(property: 'receiver_wallet_id', type: 'integer', example: 2),
+        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00),
+        new OA\Property(property: 'reference', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+        new OA\Property(property: 'status', type: 'string', example: 'completed'),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
+        new OA\Property(
+            property: 'sender',
+            properties: [
+                new OA\Property(property: 'wallet_id', type: 'integer', example: 1),
+                new OA\Property(property: 'user_id', type: 'integer', example: 1),
+                new OA\Property(property: 'user_name', type: 'string', example: 'John Doe'),
+                new OA\Property(property: 'user_email', type: 'string', example: 'john@example.com'),
+            ],
+            type: 'object'
+        ),
+        new OA\Property(
+            property: 'receiver',
+            properties: [
+                new OA\Property(property: 'wallet_id', type: 'integer', example: 2),
+                new OA\Property(property: 'user_id', type: 'integer', example: 2),
+                new OA\Property(property: 'user_name', type: 'string', example: 'Jane Smith'),
+                new OA\Property(property: 'user_email', type: 'string', example: 'jane@example.com'),
+            ],
+            type: 'object'
+        ),
+        new OA\Property(
+            property: 'transactions',
+            properties: [
+                new OA\Property(
+                    property: 'sender_transaction',
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 10),
+                        new OA\Property(property: 'type', type: 'string', example: 'transfer_out'),
+                        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00),
+                        new OA\Property(property: 'reference', type: 'string', format: 'uuid'),
+                        new OA\Property(property: 'description', type: 'string', example: 'Payment for services'),
+                        new OA\Property(property: 'status', type: 'string', example: 'completed'),
+                        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                    ],
+                    type: 'object',
+                    nullable: true
+                ),
+                new OA\Property(
+                    property: 'receiver_transaction',
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 11),
+                        new OA\Property(property: 'type', type: 'string', example: 'transfer_in'),
+                        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00),
+                        new OA\Property(property: 'reference', type: 'string', format: 'uuid'),
+                        new OA\Property(property: 'description', type: 'string', example: 'Payment for services'),
+                        new OA\Property(property: 'status', type: 'string', example: 'completed'),
+                        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                    ],
+                    type: 'object',
+                    nullable: true
+                ),
+            ],
+            type: 'object'
+        ),
+    ]
+)]
+
+
+#[OA\Schema(
+    schema: 'User',
+    description: 'User information',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
+        new OA\Property(property: 'email', type: 'string', example: 'john@example.com'),
+    ]
+)]
+
+#[OA\Schema(
+    schema: 'Wallet',
+    description: 'Wallet information with transaction summary',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'user_id', type: 'integer', example: 1),
+        new OA\Property(property: 'balance', type: 'number', format: 'float', example: 1000.00),
+        new OA\Property(
+            property: 'user',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
+                new OA\Property(property: 'email', type: 'string', example: 'john@example.com'),
+            ],
+            type: 'object'
+        ),
+        new OA\Property(
+            property: 'transaction_summary',
+            properties: [
+                new OA\Property(property: 'total_credits', type: 'number', format: 'float', example: 1500.00),
+                new OA\Property(property: 'total_debits', type: 'number', format: 'float', example: 500.00),
+                new OA\Property(property: 'total_transfers_in', type: 'number', format: 'float', example: 200.00),
+                new OA\Property(property: 'total_transfers_out', type: 'number', format: 'float', example: 100.00),
+                new OA\Property(property: 'net_flow', type: 'number', format: 'float', example: 1100.00),
+            ],
+            type: 'object'
+        ),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
+    ]
+)]
+
+class WelcomeController extends Controller {}

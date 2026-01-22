@@ -3,12 +3,13 @@
 
 namespace App\Models;
 
+use App\Enums\TransferStatus;
+use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use TransactionStatuses;
-use TransactionTypes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transfer extends Model
 {
@@ -30,6 +31,7 @@ class Transfer extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
+        'status' => TransferStatus::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -61,17 +63,17 @@ class Transfer extends Model
     /**
      * Get the sender transaction (transfer_out).
      */
-    public function senderTransaction()
+    public function senderTransaction(): HasOne
     {
-        return $this->transactions()->where('type', TransactionTypes::TRANSFER_OUT->value)->first();
+        return $this->hasOne(Transaction::class)->where('type', TransactionType::TRANSFER_OUT);
     }
 
     /**
      * Get the receiver transaction (transfer_in).
      */
-    public function receiverTransaction()
+    public function receiverTransaction(): HasOne
     {
-        return $this->transactions()->where('type', TransactionTypes::TRANSFER_IN->value)->first();
+        return $this->hasOne(Transaction::class)->where('type', TransactionType::TRANSFER_IN);
     }
 
     /**
@@ -79,7 +81,7 @@ class Transfer extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status === TransactionStatuses::COMPLETED->value;
+        return $this->status === TransferStatus::COMPLETED;
     }
 
     /**

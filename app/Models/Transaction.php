@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use TransactionStatuses;
-use TransactionTypes;
 
 class Transaction extends Model
 {
@@ -30,6 +30,8 @@ class Transaction extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
+        'type' => TransactionType::class,
+        'status' => TransactionStatus::class,
         'created_at' => 'datetime',
     ];
 
@@ -54,7 +56,7 @@ class Transaction extends Model
      */
     public function isCredit(): bool
     {
-        return $this->type === TransactionTypes::CREDIT->value;
+        return $this->type === TransactionType::CREDIT;
     }
 
     /**
@@ -62,7 +64,7 @@ class Transaction extends Model
      */
     public function isDebit(): bool
     {
-        return $this->type === TransactionTypes::DEBIT->value;
+        return $this->type === TransactionType::DEBIT;
     }
 
     /**
@@ -70,7 +72,7 @@ class Transaction extends Model
      */
     public function isTransfer(): bool
     {
-        return in_array($this->type, [TransactionTypes::TRANSFER_IN->value, TransactionTypes::TRANSFER_OUT->value]);
+        return $this->type->isTransfer();
     }
 
     /**
@@ -78,6 +80,38 @@ class Transaction extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status === TransactionStatuses::COMPLETED->value;
+        return $this->status === TransactionStatus::COMPLETED;
+    }
+
+    /**
+     * Scope for credit transactions.
+     */
+    public function scopeCredit($query)
+    {
+        return $query->where('type', TransactionType::CREDIT);
+    }
+
+    /**
+     * Scope for debit transactions.
+     */
+    public function scopeDebit($query)
+    {
+        return $query->where('type', TransactionType::DEBIT);
+    }
+
+    /**
+     * Scope for transfer_in transactions.
+     */
+    public function scopeTransferIn($query)
+    {
+        return $query->where('type', TransactionType::TRANSFER_IN);
+    }
+
+    /**
+     * Scope for transfer_out transactions.
+     */
+    public function scopeTransferOut($query)
+    {
+        return $query->where('type', TransactionType::TRANSFER_OUT);
     }
 }

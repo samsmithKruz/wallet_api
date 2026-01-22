@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\V1\TransferController;
+use App\Http\Controllers\V1\WalletController;
 use Illuminate\Support\Facades\Route;
 
 // Welcome route
@@ -12,12 +14,22 @@ Route::get('/', function () {
 });
 
 Route::middleware('token.auth')->group(function () {
-    Route::get('/protected-test', function () {
-        return response()->json([
-            'status_code' => 200,
-            'message' => 'You have access!',
-            'data' => ['protected' => true],
-            'errors' => null
-        ]);
-    });
+    Route::prefix('wallets')
+        ->controller(WalletController::class)
+        ->group(function () {
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::post('/{id}/fund', 'fund');
+            Route::post('/{id}/withdraw', 'withdraw');
+            Route::delete('/{id}', 'destroy');
+        });
+
+    Route::get('/wallets/{walletId}/transfers', [TransferController::class, 'walletTransfers']);
+
+    Route::prefix('transfers')
+        ->controller(TransferController::class)
+        ->group(function () {
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+        });
 });
