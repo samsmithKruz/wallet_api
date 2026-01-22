@@ -30,8 +30,8 @@ A robust Laravel-based Wallet Management System with double-entry bookkeeping, s
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd wallet-api
+git clone https://github.com/samsmithKruz/wallet_api.git
+cd wallet_api
 ```
 
 2. **Install dependencies**
@@ -277,12 +277,6 @@ Features:
 
 ## 🗄️ Database Migrations
 
-Key migrations included:
-```bash
-2026_01_22_000001_create_wallets_table
-2026_01_22_000003_create_transactions_table
-2026_01_22_141940_create_transfers_table
-```
 
 ## 📁 Project Structure
 
