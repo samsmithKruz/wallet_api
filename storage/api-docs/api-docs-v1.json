@@ -1,0 +1,146 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Wallet Management APIs",
+        "description": "API for managing wallets and transfers with double-entry bookkeeping",
+        "contact": {
+            "email": "samspike46@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api/v1",
+            "description": "Local Development Server"
+        },
+        {
+            "url": "/api/v1"
+        }
+    ],
+    "paths": {
+        "/api/v1/": {
+            "get": {
+                "tags": [
+                    "Welcome"
+                ],
+                "summary": "API Welcome",
+                "description": "Welcome to Wallet API v1",
+                "operationId": "getApiWelcome",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse": {
+                "description": "Standard API response format",
+                "required": [
+                    "status_code",
+                    "message"
+                ],
+                "properties": {
+                    "status_code": {
+                        "description": "HTTP status code",
+                        "type": "integer",
+                        "example": 200
+                    },
+                    "message": {
+                        "description": "Response message",
+                        "type": "string",
+                        "example": "Success"
+                    },
+                    "data": {
+                        "description": "Response data",
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    },
+                    "errors": {
+                        "description": "Array of error messages",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "description": "Error response format",
+                "required": [
+                    "status_code",
+                    "message"
+                ],
+                "properties": {
+                    "status_code": {
+                        "description": "HTTP status code",
+                        "type": "integer",
+                        "example": 400
+                    },
+                    "message": {
+                        "description": "Error message",
+                        "type": "string",
+                        "example": "Validation failed"
+                    },
+                    "errors": {
+                        "description": "Array of validation errors",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "The amount field is required."
+                        ]
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "tokenAuth": {
+                "type": "apiKey",
+                "description": "Use token: VG@123 in header",
+                "name": "token",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        {
+            "tokenAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Welcome",
+            "description": "Welcome"
+        }
+    ]
+}

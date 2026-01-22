@@ -1,0 +1,109 @@
+<?php
+// app/Models/Transfer.php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use TransactionStatuses;
+use TransactionTypes;
+
+class Transfer extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'sender_wallet_id',
+        'receiver_wallet_id',
+        'amount',
+        'reference',
+        'status',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    /**
+     * Get the sender wallet.
+     */
+    public function senderWallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class, 'sender_wallet_id');
+    }
+
+    /**
+     * Get the receiver wallet.
+     */
+    public function receiverWallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
+    }
+
+    /**
+     * Get all transactions associated with this transfer.
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get the sender transaction (transfer_out).
+     */
+    public function senderTransaction()
+    {
+        return $this->transactions()->where('type', TransactionTypes::TRANSFER_OUT->value)->first();
+    }
+
+    /**
+     * Get the receiver transaction (transfer_in).
+     */
+    public function receiverTransaction()
+    {
+        return $this->transactions()->where('type', TransactionTypes::TRANSFER_IN->value)->first();
+    }
+
+    /**
+     * Check if transfer is completed.
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === TransactionStatuses::COMPLETED->value;
+    }
+
+    /**
+     * Check if transfer involves the given wallet.
+     */
+    public function involvesWallet(Wallet $wallet): bool
+    {
+        return $this->sender_wallet_id === $wallet->id ||
+            $this->receiver_wallet_id === $wallet->id;
+    }
+
+    /**
+     * Get the counterpart wallet for a given wallet.
+     */
+    public function counterpartWallet(Wallet $wallet): ?Wallet
+    {
+        if ($this->sender_wallet_id === $wallet->id) {
+            return $this->receiverWallet;
+        }
+
+        if ($this->receiver_wallet_id === $wallet->id) {
+            return $this->senderWallet;
+        }
+
+        return null;
+    }
+}
